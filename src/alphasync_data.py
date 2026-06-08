@@ -79,9 +79,11 @@ def get_alphasync_data(uniprot_ids: list[str], output_folder: str, supress_file_
 
             # only download file if it doesn't exist in the output folder
             file_path = Path(output_folder).joinpath(f"{id}.csv")
-            if file_path.is_file() and not supress_file_exists:
-                print(f"Alphasync details for {id} already downloaded")
-            
+            if file_path.is_file():
+                if not supress_file_exists:
+                    print(f"Alphasync details for {id} already downloaded")
+                continue
+
             url = f"https://alphasync.stjude.org/api/v1/protein/{id}"
 
             # check if file can be accessed

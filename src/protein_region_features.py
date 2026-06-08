@@ -41,6 +41,7 @@ def features_binding_region_df(input_df: pd.DataFrame, binding_mode: str, featur
     # loop through each row of the input dataframe
     for row in input_df.itertuples():
         mask = getattr(row, binding_mode)
+        mask = str(mask) if pd.notna(mask) else ""
         full_seq = getattr(row, "sequence")
         uniprot_id = getattr(row, "uniprot_id")
         # find the regions where the mask is 1 and extract the corresponding sequence and features for those regions
@@ -66,22 +67,22 @@ def features_binding_region_df(input_df: pd.DataFrame, binding_mode: str, featur
 
     return pd.DataFrame(extracted_regions)
 
-def get_average_feature_value(feature_values: list[float]) -> float | None:
+def get_average_feature_value(feature_values: list[float | str]) -> float | None:
     '''
     Calculates the average value of a feature for a given binding region. Considers only the non-None values for the calculation.
     
     Args:
-        feature_values (list[float]): A list of feature values for a binding region.
+        feature_values (list[float | str]): A list of feature values for a binding region.
     Returns:
         float | None: The average value of the feature for the binding region. Returns None if there are no non-None values.
     '''
-    not_none_values = [val for val in feature_values if val is not None]
+    not_none_values = [float(val) for val in feature_values if val is not None]
     if len(not_none_values) == 0:
         return None
     else:
-        return sum(not_none_values) / len(not_none_values)
+        return round(sum(not_none_values) / len(not_none_values), 4)
     
-def get_sec_str_freq(sec_str: list[str], covert_3_state: bool = False) -> dict[str, float]:
+def get_sec_str_freq(sec_str: list[str], convert_3_state: bool = False) -> dict[str, float]:
     '''
     Calculates the frequency of each secondary structure type in a given binding region.
     
@@ -100,12 +101,12 @@ def get_sec_str_freq(sec_str: list[str], covert_3_state: bool = False) -> dict[s
     # Get the unique secondary structure types
     sec_str_types = set(sec_str)
 
-    # If covert_3_state is True and all secondary structure types are in the 9-state set, convert them to 3-state (H, E, C)
-    if covert_3_state and sec_str_types.issubset({"H", "G", "I", "E", "B", "T", "S", "P", "C"}):
+    # If convert_3_state is True and all secondary structure types are in the 9-state set, convert them to 3-state (H, E, C)
+    if convert_3_state and sec_str_types.issubset({"H", "G", "I", "E", "B", "T", "S", "P", "C"}):
         sec_str_types = {"H" if s in ["H", "G", "I"] else "E" if s in ["E", "B"] else "C" for s in sec_str_types}
 
     # Calculate the frequency of each secondary structure type and store it in a dictionary
-    frequency_dict = {sec_str_type: sec_str.count(sec_str_type) / total_count for sec_str_type in sec_str_types}
+    frequency_dict = {sec_str_type: round(sec_str.count(sec_str_type) / total_count, 4) for sec_str_type in sec_str_types}
     
     return frequency_dict
 
