@@ -98,15 +98,24 @@ def get_sec_str_freq(sec_str: list[str], convert_3_state: bool = False) -> dict[
     # If the total count is zero, return an empty dictionary to avoid division by zero
     if total_count == 0:
         return {}
-    # Get the unique secondary structure types
-    sec_str_types = set(sec_str)
-
-    # If convert_3_state is True and all secondary structure types are in the 9-state set, convert them to 3-state (H, E, C)
-    if convert_3_state and sec_str_types.issubset({"H", "G", "I", "E", "B", "T", "S", "P", "C"}):
-        sec_str_types = {"H" if s in ["H", "G", "I"] else "E" if s in ["E", "B"] else "C" for s in sec_str_types}
+    
+    # Define the set of secondary structure types based on the convert_3_state flag
+    if convert_3_state:
+        sec_str_types = ["H", "E", "C"]
+        sec_str_map = {
+        "H": "H", "G": "H", "I": "H", # Helix types
+        "E": "E", "B": "E", # Strand types
+        "T": "C", "S": "C", "P": "C", "C": "C" # Coil types
+        }
+        mapped_sec_str = [sec_str_map.get(s, s) for s in sec_str]
+    
+    # If convert_3_state is False, consider all 9-state secondary structure types
+    else:
+        sec_str_types = ["B", "E", "G", "H", "I", "P", "S", "T", "C"]
+        mapped_sec_str = sec_str
 
     # Calculate the frequency of each secondary structure type and store it in a dictionary
-    frequency_dict = {sec_str_type: round(sec_str.count(sec_str_type) / total_count, 4) for sec_str_type in sec_str_types}
+    frequency_dict = {sec_str_type: round(mapped_sec_str.count(sec_str_type) / total_count, 4) for sec_str_type in sec_str_types}
     
     return frequency_dict
 
